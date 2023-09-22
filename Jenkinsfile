@@ -21,6 +21,7 @@ pipeline {
   stages {
     stage('Create docker image') {
       steps {
+        cleanWs()
         sshagent(['projects-storage.eclipse.org-bot-ssh']) {
           sh '''
             set +x
