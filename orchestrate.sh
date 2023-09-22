@@ -60,17 +60,17 @@ yes_skip_exit() {
 
 config_create_infocenter_job() {
   echo
-  echo "Add the latest p2_repo_dir to the Choice Parameter in https://ci.eclipse.org/simrel/job/simrel.create_infocenter..."
+  echo "Add the latest p2_repo_dir to the Choice Parameter in https://ci.eclipse.org/simrel/job/simrel.create_and_publish_infocenter_pipeline job..."
   echo "  - Dir can be found here: https://download.eclipse.org/releases/${RELEASE_NAME} (e.g. releases/2022-03/202203161000)"
-  open_url "https://ci.eclipse.org/simrel/job/simrel.create_infocenter/configure"
+  open_url "https://github.com/eclipse-simrel/help.eclipse.org/blob/main/Jenkinsfile#L15"
   echo
   read -p "Press enter to continue or CTRL-C to stop the script"
 }
 
 run_create_infocenter_job() {
   echo
-  echo "Run https://ci.eclipse.org/simrel/job/simrel.create_infocenter to package a new infocenter... "
-  open_url "https://ci.eclipse.org/simrel/job/simrel.create_infocenter/build?delay=0sec"
+  echo "Run https://ci.eclipse.org/simrel/job/simrel.create_and_publish_infocenter_pipeline to package and deploy a new infocenter... "
+  open_url "https://ci.eclipse.org/simrel/job/simrel.create_and_publish_infocenter_pipeline/build?delay=0sec"
 #TODO: set the parameters via URL
   echo "  - set the release_name parameter (${RELEASE_NAME})"
   echo "  - make sure that use_latest_platform is enabled (unless you know exactly what you are doing)"
@@ -78,17 +78,6 @@ run_create_infocenter_job() {
   echo "  - wait for the build to finish"
 #TODO: set build description automatically
   echo "  - set build description (e.g. '${RELEASE_NAME} with 4.xx platform')"
-  echo
-  read -p "Press enter to continue or CTRL-C to stop the script"
-}
-
-run_publish_infocenter_job() {
-  echo
-  echo "Run https://ci.eclipse.org/simrel/job/simrel.publish_infocenter_pipeline to build and push a new docker image with the latest info center to docker hub..."
-  open_url "https://ci.eclipse.org/simrel/job/simrel.publish_infocenter_pipeline/build?delay=0sec"
-  echo "  - set the release_name parameter (${RELEASE_NAME})"
-  echo "  - set the url parameter"
-  echo "  - wait for the build to finish"
   echo "  - copy <sha256> (without the sha256: prefix) from the last lines in the console log"
   echo
   read -p "Press enter to continue or CTRL-C to stop the script"
@@ -142,10 +131,10 @@ shutdown_oldest_infocenter() {
 
 commit_changes() {
   echo
-  echo "Commit the changes in /org.eclipse.simrel.tools/infoCenter/k8s..."
+  echo "Commit the changes in k8s folder..."
   #- new directory for the latest release (e.g. 2019-12)
   git add k8s/"${RELEASE_NAME}"
-  
+
 #TODO: add instructions for updating the second to latest infocenter
   echo
   git status
@@ -180,7 +169,7 @@ adapt_nginx() {
   echo "  - reload nginx manually"
   #TODO: or use expect script? security issues?
   #ssh outage4@nginx1
-  #su - 
+  #su -
   #/usr/bin/puppet  agent --server puppet.eclipse.org --no-daemonize -o -d -l /dev/stdout
   #cat /etc/nginx/conf.d/help.eclipse.org.common
   #nginx -t
@@ -199,7 +188,7 @@ check_after_deployment(){
 update_latest_redirection(){
   echo
 #TODO: extract that and do it only on release day?
-  echo "Update /org.eclipse.simrel.tools/infoCenter/k8s/route_latest.yml to point to the latest info center..."
+  echo "Update k8s/route_latest.yml to point to the latest info center..."
   #- update route
   route_latest_file="k8s/route_latest.yml"
   sed -i -E "s/infocenter-[0-9]{4}-[0-9]{2}/infocenter-${RELEASE_NAME}/" "${route_latest_file}"
@@ -232,8 +221,6 @@ echo "======================================"
 yes_skip_exit "configure the simrel.create_infocenter job" config_create_infocenter_job
 
 yes_skip_exit "run the simrel.create_infocenter job" run_create_infocenter_job
-
-yes_skip_exit "run the simrel.publish_infocenter job" run_publish_infocenter_job
 
 yes_skip_exit "create and deploy the new infocenter" create_and_deploy_infocenter
 
