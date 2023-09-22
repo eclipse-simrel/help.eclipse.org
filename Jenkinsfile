@@ -44,7 +44,7 @@ pipeline {
             ls -al ${release_name}/eclipse/dropins/plugins >> doc_plugin_list.txt
           '''
         }
-        stash includes: '**/info-center*.tar.gz', name: 'infocenter_archive'
+        stash includes: 'app/info-center*.tar.gz', name: 'infocenter_archive'
         archiveArtifacts artifacts: '**/doc_plugin_list.txt', followSymlinks: false
       }
     }
@@ -56,8 +56,8 @@ pipeline {
         unstash 'infocenter_archive'
         withDockerRegistry([credentialsId: 'dockerhub-bot', url: 'https://index.docker.io/v1/']) {
             sh '''
-              ls -al
-              mv info-center*.tar.gz docker/
+              rm -rf docker/info-center*.tar.gz
+              mv app/info-center*.tar.gz docker/
               cd docker/
               ./build_infocenter_docker_img.sh ${release_name}
             '''
