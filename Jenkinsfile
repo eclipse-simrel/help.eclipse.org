@@ -19,11 +19,6 @@ pipeline {
     SSH_REMOTE = "genie.simrel@projects-storage.eclipse.org"
   }
   stages {
-    stage('Git checkout') {
-      steps {
-        checkout([$class: 'GitSCM', branches: [[name: '*/main']], userRemoteConfigs: [[url: 'https://github.com/eclipse-simrel/help.eclipse.org.git']]])
-      }
-    }
     stage('Create docker image') {
       steps {
         sshagent(['projects-storage.eclipse.org-bot-ssh']) {
