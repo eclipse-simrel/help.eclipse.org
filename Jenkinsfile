@@ -11,10 +11,8 @@ pipeline {
   parameters {
     string(name: 'release_name', defaultValue: '', description: 'e.g. 2020-06')
     booleanParam(name: 'use_latest_platform', defaultValue: true, description: '')
-    string(name: 'path_to_platform_archive', defaultValue: '', description: 'Only relevant if $use_latest_platform is disabled! <br/>
-      Path to eclipse platform archive that is used for the info center (base path: /home/data/httpd/download.eclipse.org/eclipse/downloads/drops4) e.g. R-4.16-202006040540/')
-    choice(name: 'p2_repo_dir', choices: ["releases/2023-09/202309131000", "releases/2023-06/202306141000"] , description: 'Path to P2 repository that is used for the info center (base path: /home/data/httpd/download.eclipse.org)<br/>
-      Dir can be found here: <a href="https://download.eclipse.org/releases/">https://download.eclipse.org/releases/</a> &lt;release&gt;')
+    string(name: 'path_to_platform_archive', defaultValue: '', description: 'Only relevant if $use_latest_platform is disabled! <br/> Path to eclipse platform archive that is used for the info center (base path: /home/data/httpd/download.eclipse.org/eclipse/downloads/drops4) e.g. R-4.16-202006040540/')
+    choice(name: 'p2_repo_dir', choices: ["releases/2023-09/202309131000", "releases/2023-06/202306141000"] , description: 'Path to P2 repository that is used for the info center (base path: /home/data/httpd/download.eclipse.org)<br/> Dir can be found here: <a href="https://download.eclipse.org/releases/">https://download.eclipse.org/releases/</a> &lt;release&gt;')
     booleanParam(name: 'past_release', defaultValue: false, description: 'Change banner to say "Past release" instead of "Current release". Enable this for all releases but the latest!')
   }
   environment {
