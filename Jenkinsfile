@@ -21,7 +21,6 @@ pipeline {
   stages {
     stage('Create docker image') {
       steps {
-        cleanWs()
         sshagent(['projects-storage.eclipse.org-bot-ssh']) {
           sh '''
             set +x
@@ -47,6 +46,7 @@ pipeline {
         }
         stash includes: 'app/info-center*.tar.gz', name: 'infocenter_archive'
         archiveArtifacts artifacts: '**/doc_plugin_list.txt', followSymlinks: false
+        cleanWs()
       }
     }
     stage('Build and push docker image') {
