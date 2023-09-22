@@ -1,0 +1,6 @@
+Manifest-Version: 2.0
+Bundle-ManifestVersion: 2
+Bundle-Name: helpbanner2
+Bundle-SymbolicName: org.foundation.helpbanner2
+Bundle-Version: 2.0.0
+

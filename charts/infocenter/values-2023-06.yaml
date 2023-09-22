@@ -1,0 +1,20 @@
+# Default values for infocenter.
+
+namespace: infocenter
+infocenterVersion: 2023-06
+replicaCount: 1
+
+image:
+  repository: eclipsecbi/eclipse-infocenter
+  pullPolicy: IfNotPresent
+  tag: "2023-06@sha256:e4d89882e99a76e68bbdb5c8656076085cd003304179a9f47b0496eb19e8b929"
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8086
+
+route:
+  host: help.eclipse.org
+
+affinity: {}

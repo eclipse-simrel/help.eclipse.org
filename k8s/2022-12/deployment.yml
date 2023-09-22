@@ -1,0 +1,75 @@
+#*******************************************************************************
+# Copyright (c) 2021 Eclipse Foundation and others.
+# This program and the accompanying materials are made available
+# under the terms of the Eclipse Public License 2.0
+# which is available at http://www.eclipse.org/legal/epl-v20.html,
+# or the MIT License which is available at https://opensource.org/licenses/MIT.
+# SPDX-License-Identifier: EPL-2.0 OR MIT
+#*******************************************************************************
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    infocenter.version: "2022-12"
+  namespace: "infocenter"
+  name: "infocenter-2022-12"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      infocenter.version: "2022-12"
+  serviceName: "infocenter-2022-12"
+  template:
+    metadata:
+      name: "infocenter-2022-12"
+      labels:
+        infocenter.version: "2022-12"
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 1
+            preference:
+              matchExpressions:
+              - key: speed
+                operator: NotIn
+                values:
+                - fast
+      terminationGracePeriodSeconds: 180
+      containers:
+      - name: infocenter-2022-12
+        image: eclipsecbi/eclipse-infocenter:2022-12@sha256:0425740ff5af5243176150a359b4e342c35290318d92eb2ac6e781480c198f77
+        imagePullPolicy: IfNotPresent
+        command:
+          - /infocenter/startDockerInfoCenter.sh
+        livenessProbe:
+          httpGet:
+            path: /help/index.jsp
+            port: 8086
+            scheme: HTTP
+          initialDelaySeconds: 480
+          periodSeconds: 60
+          failureThreshold: 2
+          timeoutSeconds: 90
+        readinessProbe:
+          httpGet:
+            path: /help/index.jsp
+            port: 8086
+          periodSeconds: 60
+          timeoutSeconds: 90
+          initialDelaySeconds: 60
+        ports:
+        - containerPort: 8086
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 500m
+          limits:
+            cpu: 2
+            memory: 1.5Gi
+        volumeMounts:
+        - name: workspace
+          mountPath: "/infocenter/workspace"
+      volumes:
+      - name: workspace
+        emptyDir: {}
