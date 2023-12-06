@@ -85,55 +85,75 @@ run_create_infocenter_job() {
 
 create_and_deploy_infocenter() {
   echo
-  echo "Create infocenter YAML and deploy it on the cluster..."
+  echo "Creating Infocenter Helm chart..."
+  local values_file="values-${RELEASE_NAME}.yaml"
 
-  pushd "${SCRIPT_FOLDER}/k8s"
+  pushd "${SCRIPT_FOLDER}/charts/infocenter" > /dev/null
   # skip creation if it exists already
-  if [[ -d "${RELEASE_NAME}" ]]; then
-    echo "Directory ${RELEASE_NAME} already exists, skipping creation..."
+  if [[ -f "${values_file}" ]]; then
+    echo "${values_file} already exists, skipping creation..."
   else
     # create info center
+    local sha_256
     read -rp "    sha256: " sha_256
 #TODO: remove the "sha256:" prefix automatically
-    echo "Creating yaml file..."
-    ./createInfoCenter_yaml.sh "${RELEASE_NAME}" "${sha_256}"
+    echo "Creating values file..."
+    cat <<EOF >> "${values_file}"
+# Default values for infocenter.
+namespace: infocenter
+infocenterVersion: ${RELEASE_NAME}
+replicaCount: 1
+
+image:
+  repository: eclipsecbi/eclipse-infocenter
+  pullPolicy: IfNotPresent
+  tag: "${RELEASE_NAME}@sha256:${sha_256}"
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8086
+
+route:
+  host: help.eclipse.org
+
+affinity: {}
+EOF
   fi
+  popd > /dev/null
 
   # deploy info center
   echo "Deploying infocenter ${RELEASE_NAME}..."
-  ./deployInfoCenter.sh "${RELEASE_NAME}"
+  echo "helm install -f charts/infocenter/values-${RELEASE_NAME}.yaml ${RELEASE_NAME} charts/infocenter --namespace infocenter"
+  read -p "Press enter to continue or CTRL-C to stop the script"
+  helm install -f "charts/infocenter/values-${RELEASE_NAME}.yaml" "${RELEASE_NAME}" "charts/infocenter" --namespace "infocenter"
 
   echo "Check that infocenter container is running on the cluster (wait for it ~2min20sec)..."
   kubectl rollout status -n "infocenter" "deployment/infocenter-${RELEASE_NAME}"
   oc get pods -n infocenter
   read -p "Press enter to continue or CTRL-C to stop the script"
-  popd
 }
 
 shutdown_oldest_infocenter() {
   echo
-  echo "Shutdown oldest infocenter on the cluster and remove the folder in the repo..."
-  pushd k8s
+  echo "Shutdown oldest infocenter on the cluster and remove the helm chart values file..."
   #TODO: find oldest release directory automatically
   read -rp "Oldest release name: " oldest_release_name
 
-  #TODO: check that ${oldest_release_name} exists
-  if [[ ! -d "${oldest_release_name}" ]]; then
-    echo "ERROR: ${oldest_release_name} does not exist. Skipping..."
+  if [[ ! -f "charts/infocenter/values-${oldest_release_name}.yaml" ]]; then
+    echo "ERROR: values-${oldest_release_name}.yaml does not exist. Skipping..."
   else
     echo "Removing info center ${oldest_release_name}..."
-    ./removeInfoCenter.sh "${oldest_release_name}"
-    #- remove the oldest directory
-    git add "${oldest_release_name}"
+    helm uninstall "${oldest_release_name}" "charts/infocenter"
+    git rm "values-${oldest_release_name}.yaml"
   fi
-  popd
 }
 
 commit_changes() {
   echo
-  echo "Commit the changes in k8s folder..."
+  echo "Committing the changes..."
   #- new directory for the latest release (e.g. 2019-12)
-  git add k8s/"${RELEASE_NAME}"
+  git add "charts/infocenter/values-${RELEASE_NAME}.yaml"
 
 #TODO: add instructions for updating the second to latest infocenter
   echo
