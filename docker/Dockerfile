@@ -1,14 +1,16 @@
-ARG CREATED=""
-ARG SOURCE=""
-ARG VERSION=""
 ARG BASE_IMAGE="openjdk:17-jdk-slim"
 FROM ${BASE_IMAGE}
 
-LABEL org.opencontainers.image.authors="Eclipse Foundation"\
-      org.opencontainers.image.created=${CREATED}\
-      org.opencontainers.image.source="${SOURCE}"\
-      org.opencontainers.image.version="${VERSION}"\
-      org.opencontainers.image.base.name="${BASE_IMAGE}"
+ARG BASE_IMAGE
+ARG CREATED=""
+ARG SOURCE=""
+ARG VERSION=""
+
+LABEL org.opencontainers.image.authors="Eclipse Foundation"
+LABEL org.opencontainers.image.created="${CREATED}"
+LABEL org.opencontainers.image.source="${SOURCE}"
+LABEL org.opencontainers.image.version="${VERSION}"
+LABEL org.opencontainers.image.base.name="${BASE_IMAGE}"
 
 ### user name recognition at runtime w/ an arbitrary uid - for OpenShift deployments
 COPY uid_entrypoint /usr/local/bin/uid_entrypoint
