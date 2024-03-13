@@ -144,8 +144,8 @@ shutdown_oldest_infocenter() {
     echo "ERROR: values-${oldest_release_name}.yaml does not exist. Skipping..."
   else
     echo "Removing info center ${oldest_release_name}..."
-    helm uninstall "${oldest_release_name}" "charts/infocenter"
-    git rm "values-${oldest_release_name}.yaml"
+    helm uninstall "${oldest_release_name}" "charts/infocenter" --namespace "infocenter"
+    git rm "charts/infocenter/values-${oldest_release_name}.yaml"
   fi
 }
 
