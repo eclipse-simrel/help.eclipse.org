@@ -38,6 +38,6 @@ cat <<EOF > ${tmp_dir}/startDockerInfoCenter.sh
 ./eclipse -nosplash -application org.eclipse.help.base.infocenterApplication -nl en -locales en -data workspace -plugincustomization plugin_customization.ini -vmargs -Xmx1024m -Dserver_port=8086
 EOF
 
-docker build --build-arg="CREATED=${date}" --build-arg="SOURCE=${source_url}" --build-arg="VERSION=${git_tag}" -t ${dockerhub_repo}:${release_name} .
+docker build --build-arg "CREATED=${date}" --build-arg "SOURCE=${source_url}" --build-arg "VERSION=${git_tag}" -t ${dockerhub_repo}:${release_name} .
 docker push ${dockerhub_repo}:${release_name}
 rm -rf ${tmp_dir}
