@@ -1,13 +1,12 @@
 # Default values for infocenter.
-
 namespace: infocenter
-infocenterVersion: 2022-06
+infocenterVersion: 2024-06
 replicaCount: 1
 
 image:
   repository: eclipsecbi/eclipse-infocenter
   pullPolicy: IfNotPresent
-  tag: "2022-06@sha256:d41616e26f077272a96a8cf7df3431e92c80ad4e2b544393a6477cbb0d63649b"
+  tag: "2024-06@sha256:838b97a5b957c93895065a0dc07614656d097183085eca2212bf1ca7e67fab30"
 
 service:
   type: ClusterIP
