@@ -6,7 +6,7 @@ replicaCount: 1
 image:
   repository: eclipsecbi/eclipse-infocenter
   pullPolicy: IfNotPresent
-  tag: "2024-03@sha256:d8bcdd8763bd5c4ff2cd1166652d2673cc3a287ed0b46d2fa7b252e408dceaf8"
+  tag: "2024-03@sha256:2cc2df470a463d6f7e75bf65d7f02bab551157788cecd956bfb6f547c87a7231"
 
 service:
   type: ClusterIP
