@@ -14,6 +14,7 @@ metadata:
   namespace: "infocenter"
   annotations:
     haproxy.router.openshift.io/timeout: 60s
+    haproxy.router.openshift.io/disable_cookies: "true"
     haproxy.router.openshift.io/rewrite-target: /help
   name: "infocenter-latest"
 spec:
