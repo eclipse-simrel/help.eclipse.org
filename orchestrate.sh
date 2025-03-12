@@ -124,6 +124,9 @@ EOF
 
   # deploy info center
   echo "Deploying infocenter ${RELEASE_NAME}..."
+  
+  # TODO: use helm upgrade if the release already exists
+  
   echo "helm install -f charts/infocenter/values-${RELEASE_NAME}.yaml ${RELEASE_NAME} charts/infocenter --namespace infocenter"
   read -p "Press enter to continue or CTRL-C to stop the script"
   helm install -f "charts/infocenter/values-${RELEASE_NAME}.yaml" "${RELEASE_NAME}" "charts/infocenter" --namespace "infocenter"
