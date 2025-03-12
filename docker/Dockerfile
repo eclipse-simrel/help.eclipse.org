@@ -1,4 +1,4 @@
-ARG BASE_IMAGE="openjdk:17-jdk-slim"
+ARG BASE_IMAGE="openjdk:21-jdk-slim"
 FROM ${BASE_IMAGE}
 
 ARG BASE_IMAGE
