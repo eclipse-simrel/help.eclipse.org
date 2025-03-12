@@ -27,5 +27,5 @@ spec:
     termination: "edge"
   to:
     kind: "Service"
-    name: "infocenter-2024-12"
+    name: "infocenter-2025-03"
     weight: 100
