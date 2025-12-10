@@ -1,4 +1,4 @@
-ARG BASE_IMAGE="temurin:21-jdk-alpine"
+ARG BASE_IMAGE="eclipse-temurin:21-jdk-alpine"
 FROM ${BASE_IMAGE}
 
 ARG BASE_IMAGE
