@@ -60,9 +60,17 @@ fi
 prepare() {
   # Create new sub directory for info center
   echo "Create sub directory for new info center ${release_name}..."
-  mkdir -p ${workdir}
 
-  # TODO: exit when sub directory already exists?
+  if [ -d "${workdir}" ]; then
+    echo "Workdir ${workdir} already exists!"
+    # TODO: exit when sub directory already exists?
+  else
+    mkdir -p ${workdir}
+  fi
+
+  # clean, might need to be commented out during local debug
+  rm -rf eclipse-platform-*-linux-gtk-x86_64.tar.gz
+  rm -rf info-center-*.tar.gz
 
   # Copy/download eclipse-platform
   echo "Downloading eclipse-platform..."
@@ -84,8 +92,8 @@ prepare() {
 
 find_base() {
   local workdir=${1:-}
-  # Find org.eclipse.help.base
-  help_base_path=$(find ${workdir} -name "org.eclipse.help.base*.jar")
+  # Find org.eclipse.help.base_*.jar 
+  help_base_path=$(find ${workdir} -name "org.eclipse.help.base_*.jar")
   #TODO: deal with potential errors
   substring_tmp=${help_base_path#.*_}
   help_base_version=${substring_tmp%.jar}
