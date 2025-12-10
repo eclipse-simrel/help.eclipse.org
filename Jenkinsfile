@@ -34,8 +34,7 @@ pipeline {
               path_to_platform_archive=${path_to_platform_archive#${base_dir}/}
             fi
             platform_archive_subdir=${path_to_platform_archive%/eclipse-*}
-            echo "platform_archive_subdir:"
-            echo ${platform_archive_subdir}
+            echo "platform_archive_subdir: ${platform_archive_subdir}"
 
             cd app
             chmod +x *.sh
