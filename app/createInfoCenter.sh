@@ -20,17 +20,17 @@ set -o pipefail
 # Parameters:
 # $1 = release name (e.g. 2019-09, 2019-12)
 # $2 = subdir to platform zip (e.g. R-4.17-202009021800)
-release_name=${1:-}
-subdir=${2:-}
-p2_repo_dir=${3:-}
-past_release=${4:-'false'}
+release_name="${1:-}"
+subdir="${2:-}"
+p2_repo_dir="${3:-}"
+past_release="${4:-'false'}"
 
 #help_home=/home/data/httpd/help.eclipse.org/
 help_home=.
-workdir=${help_home}/${release_name}
-platform_dir=/home/data/httpd/download.eclipse.org/eclipse/downloads/drops4
-p2_base_dir=/home/data/httpd/download.eclipse.org
-script_name="$(basename ${0})"
+workdir="${help_home}/${release_name}"
+platform_dir="/home/data/httpd/download.eclipse.org/eclipse/downloads/drops4"
+p2_base_dir="/home/data/httpd/download.eclipse.org"
+script_name="$(basename "${0}")"
 
 ssh_remote="genie.simrel@projects-storage.eclipse.org"
 
@@ -65,7 +65,7 @@ prepare() {
     echo "Workdir ${workdir} already exists!"
     # TODO: exit when sub directory already exists?
   else
-    mkdir -p ${workdir}
+    mkdir -p "${workdir}"
   fi
 
   # clean, might need to be commented out during local debug
@@ -79,25 +79,25 @@ prepare() {
   fi
 
   # Extract eclipse-platform
-  tar xzf eclipse-platform*.tar.gz -C ${workdir} --warning=no-unknown-keyword
+  tar xzf eclipse-platform*.tar.gz -C "${workdir}" --warning=no-unknown-keyword
 
   # Copy eclipse/plugin_customization.ini
   echo "Copying plugin_customization.ini..."
-  cp plugin_customization.ini ${workdir}/eclipse/
+  cp plugin_customization.ini "${workdir}/eclipse/"
 
   # Create dropins/plugins dir
   echo "Create dropins/plugins dir..."
-  mkdir -p ${workdir}/eclipse/dropins/plugins
+  mkdir -p "${workdir}/eclipse/dropins/plugins"
 }
 
 find_base() {
-  local workdir=${1:-}
+  local workdir="${1:-}"
   # Find org.eclipse.help.base_*.jar 
-  help_base_path=$(find ${workdir} -name "org.eclipse.help.base_*.jar")
+  help_base_path="$(find "${workdir}" -name "org.eclipse.help.base_*.jar")"
   #TODO: deal with potential errors
-  substring_tmp=${help_base_path#.*_}
-  help_base_version=${substring_tmp%.jar}
-  echo ${help_base_version}
+  substring_tmp="${help_base_path#.*_}"
+  help_base_version="${substring_tmp%.jar}"
+  echo "${help_base_version}"
 }
 
 find_doc_jars() {
@@ -108,7 +108,7 @@ find_doc_jars() {
   echo "Find doc JARs..."
 
   printf "  Looking up all JAR files that contain the string 'org.eclipse.help.toc'...\n"
-  printf "  Using the following P2 repository: ${p2_repo_dir} \n"
+  printf "  Using the following P2 repository: %s \n" "${p2_repo_dir}"
 
   cat << 'EOF' > ${remote_shell_script}
 #!/usr/bin/env bash
@@ -136,8 +136,8 @@ EOF
   ssh ${ssh_remote} "chmod +x ${remote_shell_script}; ./${remote_shell_script} ${p2_repo_dir}"
   scp "${ssh_remote}:${plugins_file}" .
   tar xf "${plugins_file}" -C "${workdir}/eclipse/dropins/plugins/"
-  no_of_files=$(find "${workdir}/eclipse/dropins/plugins/" -name *.jar | wc -l)
-  printf "  Found ${no_of_files} JAR files.\n"
+  no_of_files="$(find "${workdir}/eclipse/dropins/plugins/" -name *.jar | wc -l)"
+  printf "  Found %s JAR files.\n" "${no_of_files}"
 }
 
 create_banner() {
@@ -150,7 +150,7 @@ create_banner() {
 
   printf "Creating banner...\n"
 
-  cp ${banner_path} ${banner_dir}/../banner.html.bak
+  cp "${banner_path}" "${banner_dir}/../banner.html.bak"
 
   # replace version
   sed -i "s/${token}/Eclipse IDE ${version}/g" ${banner_path}
@@ -162,17 +162,17 @@ create_banner() {
   fi
 
   # create jar
-  pushd ${banner_dir} > /dev/null
-  zip -rq ../${banner_jar} .
+  pushd "${banner_dir}" > /dev/null
+  zip -rq "../${banner_jar}" .
   popd > /dev/null
 
   # reset banner.html
-  cp ${banner_dir}/../banner.html.bak ${banner_path}
-  rm ${banner_dir}/../banner.html.bak
+  cp "${banner_dir}/../banner.html.bak" "${banner_path}"
+  rm "${banner_dir}/../banner.html.bak"
 
   # Add custom banner
   echo "Adding custom banner..."
-  cp ${banner_jar} ${workdir}/eclipse/dropins/plugins/${banner_jar}
+  cp "${banner_jar}" "${workdir}/eclipse/dropins/plugins/${banner_jar}"
 }
 
 create_scripts() {
@@ -208,15 +208,15 @@ create_archive() {
   # fi
   echo "Creating info center archive..."
   full_date=$(date +%Y-%m-%d-%H-%M-%S)
-  tar czf info-center-${release_name}-${full_date}.tar.gz ${workdir}
+  tar czf "info-center-${release_name}-${full_date}.tar.gz" "${workdir}"
 }
 
 prepare
-help_base_version=$(find_base ${workdir})
+help_base_version="$(find_base "${workdir}")"
 echo "Found base version ${help_base_version}."
 find_doc_jars
-create_banner ${release_name} ${workdir}
-create_scripts ${workdir} ${help_base_version} ${info_center_port}
-create_archive ${workdir} ${release_name}
+create_banner "${release_name}" "${workdir}"
+create_scripts "${workdir}" "${help_base_version}" "${info_center_port}"
+create_archive "${workdir}" "${release_name}"
 
 printf "Done.\n"
