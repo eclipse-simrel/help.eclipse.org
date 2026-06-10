@@ -19,6 +19,8 @@ SCRIPT_FOLDER="$(dirname "$(readlink -f "${0}")")"
 source "${SCRIPT_FOLDER}/utils/common.sh"
 
 JIRO_ROOT_DIR="$("${SCRIPT_FOLDER}/utils/local_config.sh" "get_var" "jiro-root-dir")"
+JENKINS_USER="$("${SCRIPT_FOLDER}/utils/local_config.sh" "get_var" "user" "jenkins_login")"
+JENKINS_PW="$("${SCRIPT_FOLDER}/utils/local_config.sh" "get_var" "pw" "jenkins_login")"
 INFOCENTER_JENKINS_JOB="simrel.create_and_publish_infocenter_pipeline"
 NAMESPACE="infocenter"
 
@@ -84,7 +86,7 @@ run_create_infocenter_job() {
   #echo "  - select latest p2_repo_dir"
   echo "  - setting build description (e.g. '${RELEASE_NAME} with 4.xx platform')"
   # get latest build number
-  LATEST_JOB_NUMBER="$(curl -sSL "https://ci.eclipse.org/simrel/job/${INFOCENTER_JENKINS_JOB}/api/json/" | jq '.lastBuild.number')"
+  LATEST_JOB_NUMBER="$(curl -sSL --user "${JENKINS_USER}:${JENKINS_PW}" "https://ci.eclipse.org/simrel/job/${INFOCENTER_JENKINS_JOB}/api/json/" | jq '.lastBuild.number')"
   echo "Found latest job number: ${LATEST_JOB_NUMBER}"
   read -p "Press enter to continue or CTRL-C to stop the script"
   # get platform version
