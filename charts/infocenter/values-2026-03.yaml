@@ -2,18 +2,14 @@
 namespace: infocenter
 infocenterVersion: 2026-03
 replicaCount: 1
-
 image:
   repository: eclipsecbi/eclipse-infocenter
   pullPolicy: IfNotPresent
-  tag: "2026-03@sha256:c594cb0fca8463a5198a53be8b3205213ae1ad8e38cc877efd4bbabd90620d5c"
-
+  tag: "2026-03@sha256:bc14855b65e683412e47ca57b8ff5bda3bbd937ee7885d49b286738e4088bdef"
 service:
   type: ClusterIP
   port: 80
   targetPort: 8086
-
 route:
   host: help.eclipse.org
-
 affinity: {}
