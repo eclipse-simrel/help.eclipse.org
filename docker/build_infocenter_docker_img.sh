@@ -47,15 +47,13 @@ echo "INFO: Building docker image remotely..."
 
 builder="remote-okd"
 
-docker buildx ls
-
-echo "FOO"
 # only create builder if it does not exist yet
-if ! docker buildx ls | grep "^${builder}" > /dev/null; then
-  docker buildx create --name "${builder}" --driver remote "${BUILDKIT_URL}"
-fi
-
-echo "BAR"
+# running "docker buildx ls"" causes the following error message:
+# "Cannot load builder default: failed to connect to the docker API at unix:///var/run/docker.sock; check if the path is correct and if the daemon is running: dial unix /var/run/docker.sock: connect: no such file or directory"
+# therefore skipping it for now
+#if ! docker buildx ls | grep "^${builder}" > /dev/null; then
+docker buildx create --name "${builder}" --driver remote "${BUILDKIT_URL}"
+#fi
 
 #NOTE: this call always pushes the image
 DOCKER_BUILDKIT=1 docker buildx build \
