@@ -65,7 +65,7 @@ pipeline {
                         tty: true
                         resources:
                           limits:
-                            cpu: 1
+                            cpu: 500m
                             memory: 1Gi
                         volumeMounts:
                           - mountPath: /home/jenkins/agent/.docker
@@ -80,7 +80,7 @@ pipeline {
                       - name: jnlp
                         resources:
                           limits:
-                            cpu: 1
+                            cpu: 500m
                             memory: 1Gi
                     volumes:
                       - name: dot-docker
