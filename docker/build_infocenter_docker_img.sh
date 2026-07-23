@@ -51,7 +51,7 @@ builder="remote-okd"
 if ! docker buildx ls | grep "^${builder}" > /dev/null; then
   docker buildx create --name "${builder}" --driver remote "${BUILDKIT_URL}"
 fi
-docker buildx use "${builder}"
+docker buildx use --default "${builder}"
 #NOTE: this call always pushes the image
 DOCKER_BUILDKIT=1 docker buildx build \
   --builder "${builder}" \
