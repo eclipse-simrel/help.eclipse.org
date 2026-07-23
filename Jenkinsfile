@@ -1,44 +1,6 @@
 pipeline {
-  agent {
-      kubernetes {
-          label 'docker-agent'
-          yaml '''
-              apiVersion: v1
-              kind: Pod
-              spec:
-                containers:
-                  - name: docker-agent
-                    image: eclipsecbi/docker-kubectl:0.0.1
-                    command:
-                      - cat
-                    tty: true
-                    resources:
-                      limits:
-                        cpu: 1
-                        memory: 1Gi
-                    volumeMounts:
-                      - mountPath: /home/jenkins/agent/.docker
-                        name: dot-docker
-                        readOnly: false
-                      - mountPath: /home/default/.kube
-                        name: dot-kube
-                        readOnly: false
-                    env:
-                    - name: "HOME"
-                      value: "/home/jenkins/agent"
-                  - name: jnlp
-                    resources:
-                      limits:
-                        cpu: 1
-                        memory: 1Gi
-                volumes:
-                  - name: dot-docker
-                    emptyDir: {}
-                  - name: dot-kube
-                    emptyDir: {}
-          '''
-      }
-  }
+  agent any
+
   options {
     buildDiscarder(logRotator(numToKeepStr: '10'))
     timeout(time: 15, unit: 'MINUTES')
@@ -88,6 +50,46 @@ pipeline {
       }
     }
     stage('Build and push docker image') {
+      agent {
+          kubernetes {
+              label 'docker-agent'
+              yaml '''
+                  apiVersion: v1
+                  kind: Pod
+                  spec:
+                    containers:
+                      - name: docker-agent
+                        image: eclipsecbi/docker-kubectl:0.0.1
+                        command:
+                          - cat
+                        tty: true
+                        resources:
+                          limits:
+                            cpu: 1
+                            memory: 1Gi
+                        volumeMounts:
+                          - mountPath: /home/jenkins/agent/.docker
+                            name: dot-docker
+                            readOnly: false
+                          - mountPath: /home/default/.kube
+                            name: dot-kube
+                            readOnly: false
+                        env:
+                        - name: "HOME"
+                          value: "/home/jenkins/agent"
+                      - name: jnlp
+                        resources:
+                          limits:
+                            cpu: 1
+                            memory: 1Gi
+                    volumes:
+                      - name: dot-docker
+                        emptyDir: {}
+                      - name: dot-kube
+                        emptyDir: {}
+              '''
+          }
+      }
       steps {
         container('docker-agent') {
           unstash 'infocenter_archive'
