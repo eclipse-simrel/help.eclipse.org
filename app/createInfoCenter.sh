@@ -79,7 +79,8 @@ prepare() {
   fi
 
   # Extract eclipse-platform
-  tar xzf eclipse-platform*.tar.gz -C "${workdir}" --warning=no-unknown-keyword
+  #tar xzf eclipse-platform*.tar.gz -C "${workdir}" --warning=no-unknown-keyword
+  tar xzf eclipse-platform*.tar.gz -C "${workdir}"
 
   # Copy eclipse/plugin_customization.ini
   echo "Copying plugin_customization.ini..."
@@ -92,7 +93,7 @@ prepare() {
 
 find_base() {
   local workdir="${1:-}"
-  # Find org.eclipse.help.base_*.jar 
+  # Find org.eclipse.help.base_*.jar
   help_base_path="$(find "${workdir}" -name "org.eclipse.help.base_*.jar")"
   #TODO: deal with potential errors
   substring_tmp="${help_base_path#.*_}"

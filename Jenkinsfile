@@ -1,6 +1,57 @@
 pipeline {
-  agent any
-
+  agent {
+      kubernetes {
+          defaultContainer 'docker-agent'
+          label 'docker-agent'
+          yaml '''
+              apiVersion: v1
+              kind: Pod
+              spec:
+                containers:
+                  - name: docker-agent
+                    image: fr3d/docker-kubectl:0.0.7
+                    command:
+                      - cat
+                    tty: true
+                    resources:
+                      limits:
+                        cpu: 1
+                        memory: 1Gi
+                    volumeMounts:
+                      - mountPath: /home/jenkins/agent/.docker
+                        name: dot-docker
+                        readOnly: false
+                      - mountPath: /home/jenkins/agent/.ssh
+                        name: dot-ssh
+                        readOnly: false
+                      - mountPath: "/home/jenkins/agent/.ssh/known_hosts"
+                        name: "ssh-known-hosts"
+                        subPath: "known_hosts"
+                        readOnly: false
+                      - mountPath: /home/default/.kube
+                        name: dot-kube
+                        readOnly: false
+                    env:
+                    - name: "HOME"
+                      value: "/home/jenkins/agent"
+                  - name: jnlp
+                    resources:
+                      limits:
+                        cpu: 1
+                        memory: 1Gi
+                volumes:
+                  - name: dot-docker
+                    emptyDir: {}
+                  - name: dot-kube
+                    emptyDir: {}
+                  - name: dot-ssh
+                    emptyDir: {}
+                  - name: "ssh-known-hosts"
+                    configMap:
+                      name: "known-hosts"
+          '''
+      }
+  }
   options {
     buildDiscarder(logRotator(numToKeepStr: '10'))
     timeout(time: 15, unit: 'MINUTES')
@@ -23,73 +74,35 @@ pipeline {
     stage('Create docker image') {
       steps {
         sshagent(['projects-storage.eclipse.org-bot-ssh']) {
-          sh '''
-            set +x
-            echo "use_latest_platform: ${use_latest_platform}"
-            if ${use_latest_platform}; then
-              base_dir="/home/data/httpd/download.eclipse.org/eclipse/downloads/drops4"
-              ssh "${SSH_REMOTE}" ls -a1d ${base_dir}/R-*
-              latest_r_build_dir=$(ssh "${SSH_REMOTE}" ls -1d ${base_dir}/R-* | tail -n 1)
-              path_to_platform_archive=$(ssh "${SSH_REMOTE}" ls -1 ${latest_r_build_dir}/eclipse-platform-*linux-gtk-x86_64.tar.gz)
-              #cut of base dir
-              path_to_platform_archive=${path_to_platform_archive#${base_dir}/}
-            fi
-            platform_archive_subdir=${path_to_platform_archive%/eclipse-*}
-            echo "platform_archive_subdir: ${platform_archive_subdir}"
+            container('docker-agent') {
+              sh '''
+                set +x
+                echo "use_latest_platform: ${use_latest_platform}"
+                if ${use_latest_platform}; then
+                  base_dir="/home/data/httpd/download.eclipse.org/eclipse/downloads/drops4"
+                  ssh "${SSH_REMOTE}" ls -a1d ${base_dir}/R-*
+                  latest_r_build_dir=$(ssh "${SSH_REMOTE}" ls -1d ${base_dir}/R-* | tail -n 1)
+                  path_to_platform_archive=$(ssh "${SSH_REMOTE}" ls -1 ${latest_r_build_dir}/eclipse-platform-*linux-gtk-x86_64.tar.gz)
+                  #cut of base dir
+                  path_to_platform_archive=${path_to_platform_archive#${base_dir}/}
+                fi
+                platform_archive_subdir=${path_to_platform_archive%/eclipse-*}
+                echo "platform_archive_subdir: ${platform_archive_subdir}"
 
-            cd app
-            chmod +x *.sh
-            ./createInfoCenter.sh ${release_name} ${platform_archive_subdir} ${p2_repo_dir} ${past_release}
+                cd app
+                chmod +x *.sh
+                ./createInfoCenter.sh ${release_name} ${platform_archive_subdir} ${p2_repo_dir} ${past_release}
 
-            ls -al ${release_name}/eclipse/dropins/plugins >> doc_plugin_list.txt
-          '''
+                ls -al ${release_name}/eclipse/dropins/plugins >> doc_plugin_list.txt
+              '''
+            stash includes: 'app/info-center*.tar.gz', name: 'infocenter_archive'
+            archiveArtifacts artifacts: '**/doc_plugin_list.txt', followSymlinks: false
+            cleanWs()
+          }
         }
-        stash includes: 'app/info-center*.tar.gz', name: 'infocenter_archive'
-        archiveArtifacts artifacts: '**/doc_plugin_list.txt', followSymlinks: false
-        cleanWs()
       }
     }
     stage('Build and push docker image') {
-      agent {
-          kubernetes {
-              label 'docker-agent'
-              yaml '''
-                  apiVersion: v1
-                  kind: Pod
-                  spec:
-                    containers:
-                      - name: docker-agent
-                        image: eclipsecbi/docker-kubectl:0.0.1
-                        command:
-                          - cat
-                        tty: true
-                        resources:
-                          limits:
-                            cpu: 500m
-                            memory: 1Gi
-                        volumeMounts:
-                          - mountPath: /home/jenkins/agent/.docker
-                            name: dot-docker
-                            readOnly: false
-                          - mountPath: /home/default/.kube
-                            name: dot-kube
-                            readOnly: false
-                        env:
-                        - name: "HOME"
-                          value: "/home/jenkins/agent"
-                      - name: jnlp
-                        resources:
-                          limits:
-                            cpu: 500m
-                            memory: 1Gi
-                    volumes:
-                      - name: dot-docker
-                        emptyDir: {}
-                      - name: dot-kube
-                        emptyDir: {}
-              '''
-          }
-      }
       steps {
         container('docker-agent') {
           unstash 'infocenter_archive'
