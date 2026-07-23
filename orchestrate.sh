@@ -94,7 +94,7 @@ run_create_infocenter_job() {
   read -rp "    Platform version (e.g. 4.37): " PLATFORM_VERSION
   ./jenkins-cli.sh instances/technology.simrel set-build-description "${INFOCENTER_JENKINS_JOB}" "${LATEST_JOB_NUMBER}" "${RELEASE_NAME} with ${PLATFORM_VERSION} platform"
   echo "  - copying <sha256> (without the sha256: prefix) from the last lines in the console log"
-  SHA_256="$(./jenkins-cli.sh instances/technology.simrel console "${INFOCENTER_JENKINS_JOB}" "${LATEST_JOB_NUMBER}" -n 50 | grep 'digest: sha256' | sed 's/.*sha256://g' | sed 's/ size:.*//g')"
+  SHA_256="$(./jenkins-cli.sh instances/technology.simrel console "${INFOCENTER_JENKINS_JOB}" "${LATEST_JOB_NUMBER}" -n 50 | grep '2026-06@sha256' | head -n 1 | sed 's/.*sha256://g' | sed 's/ size:.*//g')"
   echo "Found SHA256: ${SHA_256}"
   popd > /dev/null
   echo
