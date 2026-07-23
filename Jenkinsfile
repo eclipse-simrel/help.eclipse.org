@@ -9,7 +9,7 @@ pipeline {
               spec:
                 containers:
                   - name: docker-agent
-                    image: fr3d/docker-kubectl:0.0.7
+                    image: eclipsecbi/docker-kubectl:0.0.2
                     command:
                       - cat
                     tty: true
@@ -95,21 +95,17 @@ pipeline {
 
                 ls -al ${release_name}/eclipse/dropins/plugins >> doc_plugin_list.txt
               '''
-            stash includes: 'app/info-center*.tar.gz', name: 'infocenter_archive'
             archiveArtifacts artifacts: '**/doc_plugin_list.txt', followSymlinks: false
-            cleanWs()
-          }
+           }
         }
       }
     }
     stage('Build and push docker image') {
       steps {
         container('docker-agent') {
-          unstash 'infocenter_archive'
-          withDockerRegistry([credentialsId: 'dockerhub-bot', url: 'https://index.docker.io/v1/']) {
+           withDockerRegistry([credentialsId: 'dockerhub-bot', url: 'https://index.docker.io/v1/']) {
               sh '''
-                rm -rf docker/info-center*.tar.gz
-                mv app/info-center*.tar.gz docker/
+                 mv app/info-center*.tar.gz docker/
                 cd docker/
                 ./build_infocenter_docker_img.sh ${release_name}
               '''
