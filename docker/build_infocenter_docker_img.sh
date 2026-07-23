@@ -14,13 +14,18 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-source_url="https://github.com/eclipse-simrel/help.eclipse.org/blob/main/docker/Dockerfile"
-date="$(date +%FT%T%:z)"
-git_tag="$(git rev-parse HEAD)"
+IFS=$'\n\t'
+SCRIPT_FOLDER="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+
+BUILDKIT_URL="tcp://buildkitd.foundation-internal-infra-buildkitd:1234"
+
+SOURCE_URL="https://github.com/eclipse-simrel/help.eclipse.org/blob/main/docker/Dockerfile"
+DATE="$(date +%FT%T%:z)"
+GIT_TAG="$(git rev-parse HEAD)"
+DOCKERHUB_REPO=eclipsecbi/eclipse-infocenter
 
 # Parameters:
 release_name=${1:-}
-dockerhub_repo=eclipsecbi/eclipse-infocenter
 
 # Verify inputs
 if [[ -z "${release_name}" && $# -lt 1 ]]; then
@@ -38,6 +43,20 @@ cat <<EOF > ${tmp_dir}/startDockerInfoCenter.sh
 ./eclipse -nosplash -application org.eclipse.help.base.infocenterApplication -nl en -locales en -data workspace -plugincustomization plugin_customization.ini -vmargs -Xmx1024m -Dserver_port=8086
 EOF
 
-docker build --build-arg "CREATED=${date}" --build-arg "SOURCE=${source_url}" --build-arg "VERSION=${git_tag}" -t ${dockerhub_repo}:${release_name} .
-docker push ${dockerhub_repo}:${release_name}
+INFO "Building docker image remotely..."
+
+builder="remote-okd"
+
+# only create builder if it does not exist yet
+if ! docker buildx ls | grep "^${builder}" > /dev/null; then
+  docker buildx create --name "${builder}" --driver remote "${BUILDKIT_URL}"
+fi
+#NOTE: this call always pushes the image
+DOCKER_BUILDKIT=1 docker buildx build \
+  --builder "${builder}" \
+  --build-arg "CREATED=${DATE}" --build-arg "SOURCE=${SOURCE_URL}" --build-arg "VERSION=${GIT_TAG}" \
+  --no-cache \
+  -t "${DOCKERHUB_REPO}:${release_name}" \
+  --push .
+
 rm -rf ${tmp_dir}

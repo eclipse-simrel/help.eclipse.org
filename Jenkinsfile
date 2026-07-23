@@ -1,5 +1,44 @@
 pipeline {
-  agent any
+  agent {
+      kubernetes {
+          label 'docker-agent'
+          yaml '''
+              apiVersion: v1
+              kind: Pod
+              spec:
+                containers:
+                  - name: docker-agent
+                    image: eclipsecbi/docker-kubectl:0.0.1
+                    command:
+                      - cat
+                    tty: true
+                    resources:
+                      limits:
+                        cpu: 1
+                        memory: 1Gi
+                    volumeMounts:
+                      - mountPath: /home/jenkins/agent/.docker
+                        name: dot-docker
+                        readOnly: false
+                      - mountPath: /home/default/.kube
+                        name: dot-kube
+                        readOnly: false
+                    env:
+                    - name: "HOME"
+                      value: "/home/jenkins/agent"
+                  - name: jnlp
+                    resources:
+                      limits:
+                        cpu: 1
+                        memory: 1Gi
+                volumes:
+                  - name: dot-docker
+                    emptyDir: {}
+                  - name: dot-kube
+                    emptyDir: {}
+          '''
+      }
+  }
   options {
     buildDiscarder(logRotator(numToKeepStr: '10'))
     timeout(time: 15, unit: 'MINUTES')
@@ -49,18 +88,17 @@ pipeline {
       }
     }
     stage('Build and push docker image') {
-      agent {
-        label 'docker-build'
-      }
       steps {
-        unstash 'infocenter_archive'
-        withDockerRegistry([credentialsId: 'dockerhub-bot', url: 'https://index.docker.io/v1/']) {
-            sh '''
-              rm -rf docker/info-center*.tar.gz
-              mv app/info-center*.tar.gz docker/
-              cd docker/
-              ./build_infocenter_docker_img.sh ${release_name}
-            '''
+        container('docker-agent') {
+          unstash 'infocenter_archive'
+          withDockerRegistry([credentialsId: 'dockerhub-bot', url: 'https://index.docker.io/v1/']) {
+              sh '''
+                rm -rf docker/info-center*.tar.gz
+                mv app/info-center*.tar.gz docker/
+                cd docker/
+                ./build_infocenter_docker_img.sh ${release_name}
+              '''
+          }
         }
       }
     }
