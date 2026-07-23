@@ -47,11 +47,16 @@ echo "INFO: Building docker image remotely..."
 
 builder="remote-okd"
 
+docker buildx ls
+
+echo "FOO"
 # only create builder if it does not exist yet
 if ! docker buildx ls | grep "^${builder}" > /dev/null; then
   docker buildx create --name "${builder}" --driver remote "${BUILDKIT_URL}"
 fi
-docker buildx use --default "${builder}"
+
+echo "BAR"
+
 #NOTE: this call always pushes the image
 DOCKER_BUILDKIT=1 docker buildx build \
   --builder "${builder}" \
